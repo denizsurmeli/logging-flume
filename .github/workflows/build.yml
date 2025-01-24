@@ -20,6 +20,10 @@ on:
     branches:
       - trunk
   pull_request:
+  # if a tag is pushed, this workflow will run
+      tags:
+      - '*'
+
 
 jobs:
   build:
