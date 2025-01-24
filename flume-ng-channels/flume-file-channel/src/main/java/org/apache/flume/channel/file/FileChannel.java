@@ -492,6 +492,7 @@ public class FileChannel extends BasicChannelSemantics implements TransactionCap
 
     @Override
     protected void doPut(Event event) throws InterruptedException {
+      int startTs = (int) System.currentTimeMillis();
       channelCounter.incrementEventPutAttemptCount();
       if (putList.remainingCapacity() == 0) {
         throw new ChannelException("Put queue for FileBackedTransaction " +
@@ -527,11 +528,14 @@ public class FileChannel extends BasicChannelSemantics implements TransactionCap
           // the put fails for any reason
           queueRemaining.release();
         }
+        int endTs = (int) System.currentTimeMillis();
+        LOG.info("Put event in {} ms, starTime: {}, endTime: {}, headers: {}", endTs - startTs, startTs, endTs, event.getHeaders().toString());
       }
     }
 
     @Override
     protected Event doTake() throws InterruptedException {
+      int startTs = (int) System.currentTimeMillis();
       channelCounter.incrementEventTakeAttemptCount();
       if (takeList.remainingCapacity() == 0) {
         throw new ChannelException("Take list for FileBackedTransaction, capacity " +
@@ -562,6 +566,8 @@ public class FileChannel extends BasicChannelSemantics implements TransactionCap
                       + channelNameDescriptor);
               log.take(transactionID, ptr); // write take to disk
               Event event = log.get(ptr);
+              int endTs = (int) System.currentTimeMillis();
+              LOG.info("Take event in {} ms, starTime: {}, endTime: {}, headers: {}", endTs - startTs, startTs, endTs, event.getHeaders().toString());
               return event;
             } catch (IOException e) {
               channelCounter.incrementEventTakeErrorCount();
@@ -584,11 +590,13 @@ public class FileChannel extends BasicChannelSemantics implements TransactionCap
         }
       } finally {
         log.unlockShared();
+
       }
     }
 
     @Override
     protected void doCommit() throws InterruptedException {
+      int startTs = (int) System.currentTimeMillis();
       int puts = putList.size();
       int takes = takeList.size();
       if (puts > 0) {
@@ -638,6 +646,9 @@ public class FileChannel extends BasicChannelSemantics implements TransactionCap
       putList.clear();
       takeList.clear();
       channelCounter.setChannelSize(queue.getSize());
+      int endTs = (int) System.currentTimeMillis();
+
+        LOG.info("Commit event in {} ms, starTime: {}, endTime: {}", endTs - startTs, startTs, endTs);
     }
 
     @Override

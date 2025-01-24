@@ -275,7 +275,9 @@ public class KafkaSink extends AbstractSink implements Configurable, BatchSizeSu
           future.get();
         }
         long endTime = System.nanoTime();
-        counter.addToKafkaEventSendTimer((endTime - batchStartTime) / (1000 * 1000));
+        long sendDuration =  (endTime - batchStartTime) / (1000 * 1000);
+        logger.info("Kafka Sink {} sent {} messages in {} ms", getName(), processedEvents, sendDuration);
+        counter.addToKafkaEventSendTimer(sendDuration);
         counter.addToEventDrainSuccessCount(kafkaFutures.size());
       }
 
