@@ -22,7 +22,6 @@ on:
     tags:
       - v*
   pull_request:
-  # if a tag is pushed, this workflow will run
 
 
 
